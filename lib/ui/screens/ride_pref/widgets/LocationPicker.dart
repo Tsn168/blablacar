@@ -2,6 +2,7 @@ import 'package:blabla/model/ride/locations.dart';
 import 'package:flutter/material.dart';
 import 'package:blabla/data/dummy_data.dart';
 import 'package:blabla/ui/theme/theme.dart';
+import 'package:blabla/ui/screens/ride_pref/widgets/LocationPickerModal.dart';
 
 class LocationPicker extends StatefulWidget {
   final Location? selectedLocation;
@@ -29,23 +30,21 @@ class _LocationPickerState extends State<LocationPicker> {
   void _openLocationPickerModal() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => (fakeLocations.isEmpty)
-          ? const Center(child: Text('No locations available'))
-          : ListView.builder(
-              itemCount: fakeLocations.length,
-              itemBuilder: (context, index) {
-                final location = fakeLocations[index];
-                return ListTile(
-                  title: Text(location.name),
-                  onTap: () {
-                    setState(() => currentLocation = location);
-                    widget.onLocationSelected(location);
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
+      builder: (context) => LocationPickerModal(
+        selectedLocation: currentLocation,
+        onSelected: (location) {
+          currentLocation = location;
+          widget.onLocationSelected(location);
+        },
+      ),
     );
+  }
+
+  void didUpdateWidget(LocationPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedLocation != oldWidget.selectedLocation) {
+      setState(() => currentLocation = widget.selectedLocation);
+    }
   }
 
   @override

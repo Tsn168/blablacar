@@ -1,15 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:blabla/ui/theme/theme.dart';
-import 'package:blabla/utils/date_time_utils.dart';
-import 'package:blabla/data/dummy_data.dart';
-import 'package:blabla/ui/widgets/blaButton.dart';
+import 'package:blabla/ui/widgets/buttons/blaButton.dart';
 import 'package:blabla/ui/screens/ride_pref/widgets/LocationPicker.dart';
-import 'package:blabla/ui/screens/ride_pref/widgets/DatePicker.dart';
 import 'package:blabla/ui/screens/ride_pref/widgets/SeatPicker.dart';
 import '../../../../model/ride/locations.dart';
 import '../../../../model/ride_pref/ride_pref.dart';
 
-///
+/// Minimal local DatePicker widget to satisfy the usage in this file.
+/// It provides the same constructor signature used below: (selectedDate, onDateSelected).
+/// If you have a more fully featured DatePicker implementation, you can remove this
+/// local widget or adjust accordingly.
+class DatePicker extends StatelessWidget {
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const DatePicker({
+    Key? key,
+    required this.selectedDate,
+    required this.onDateSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: const Text('Date'),
+      subtitle: Text('${selectedDate.toLocal()}'.split(' ')[0]),
+      trailing: const Icon(Icons.calendar_today),
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: selectedDate,
+          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        );
+        if (picked != null) {
+          onDateSelected(picked);
+        }
+      },
+    );
+  }
+}
+
 /// A Ride Preference From is a view to select:
 ///   - A depcarture location
 ///   - An arrival location
@@ -42,6 +73,12 @@ class _RidePrefFormState extends State<RidePrefForm> {
   void initState() {
     super.initState();
     // TODO
+    if (widget.initRidePref != null) {
+      departure = widget.initRidePref!.departure;
+      arrival = widget.initRidePref!.arrival;
+      departureDate = widget.initRidePref!.departureDate;
+      requestedSeats = widget.initRidePref!.requestedSeats;
+    }
   }
 
   void _onDepartureSelected(Location location) {
@@ -62,6 +99,14 @@ class _RidePrefFormState extends State<RidePrefForm> {
 
   bool _isFormValid() {
     return departure != null && arrival != null;
+  }
+
+  void _switchLocations() {
+    setState(() {
+      final temp = departure;
+      departure = arrival;
+      arrival = temp;
+    });
   }
 
   void _onSearchPressed() {
@@ -94,30 +139,69 @@ class _RidePrefFormState extends State<RidePrefForm> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // LocationPicker for departure
-            LocationPicker(
-              selectedLocation: departure,
-              onLocationSelected: _onDepartureSelected,
+            // Departure and Switch Location
+            Stack(
+              children: [
+                Column(
+                  children: [
+                    // Departure LocationPicker
+                    LocationPicker(
+                      selectedLocation: departure,
+                      onLocationSelected: _onDepartureSelected,
+                    ),
+                    const SizedBox(height: 1),
+                    // Divider
+                    Container(height: 1, color: Colors.grey[300]),
+                    const SizedBox(height: 1),
+                    // Arrival LocationPicker
+                    LocationPicker(
+                      selectedLocation: arrival,
+                      onLocationSelected: _onArrivalSelected,
+                    ),
+                  ],
+                ),
+                // Switch Button
+                Positioned(
+                  right: 8,
+                  top: 32,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: BlaColors.neutralLight),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.swap_vert),
+                      onPressed: _switchLocations,
+                      color: Colors.blue,
+                      iconSize: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            // LocationPicker for arrival
-            LocationPicker(
-              selectedLocation: arrival,
-              onLocationSelected: _onArrivalSelected,
-            ),
-            const SizedBox(height: 12),
-            DatePickerWidget(
+            const SizedBox(height: 16),
+            // Divider
+            Divider(color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            // Date Picker
+            DatePicker(
               selectedDate: departureDate,
               onDateSelected: _onDateSelected,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            // Divider
+            Divider(color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            // Seat Picker
             SeatPicker(
               selectedSeats: requestedSeats,
               onSeatChange: _onSeatsChanged,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
+            // Search Button
             BlaButton(
-              text: 'Search Rides',
+              text: 'Search',
               isPrimary: _isFormValid(),
               onPressed: _isFormValid() ? _onSearchPressed : () {},
             ),
