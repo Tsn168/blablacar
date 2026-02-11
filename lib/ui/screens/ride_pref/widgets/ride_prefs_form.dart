@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-
+import 'package:blabla/ui/theme/theme.dart';
+import 'package:blabla/utils/date_time_utils.dart';
+import 'package:blabla/data/dummy_data.dart';
+import 'package:blabla/ui/widgets/blaButton.dart';
+import 'package:blabla/ui/screens/ride_pref/widgets/LocationPicker.dart';
+import 'package:blabla/ui/screens/ride_pref/widgets/DatePicker.dart';
+import 'package:blabla/ui/screens/ride_pref/widgets/SeatPicker.dart';
 import '../../../../model/ride/locations.dart';
 import '../../../../model/ride_pref/ride_pref.dart';
 
@@ -24,9 +30,9 @@ class RidePrefForm extends StatefulWidget {
 
 class _RidePrefFormState extends State<RidePrefForm> {
   Location? departure;
-  late DateTime departureDate;
+  DateTime departureDate = DateTime.now();
   Location? arrival;
-  late int requestedSeats;
+  int requestedSeats = 1;
 
   // ----------------------------------
   // Initialize the Form attributes
@@ -36,6 +42,38 @@ class _RidePrefFormState extends State<RidePrefForm> {
   void initState() {
     super.initState();
     // TODO
+  }
+
+  void _onDepartureSelected(Location location) {
+    setState(() => departure = location);
+  }
+
+  void _onArrivalSelected(Location location) {
+    setState(() => arrival = location);
+  }
+
+  void _onDateSelected(DateTime date) {
+    setState(() => departureDate = date);
+  }
+
+  void _onSeatsChanged(int seats) {
+    setState(() => requestedSeats = seats);
+  }
+
+  bool _isFormValid() {
+    return departure != null && arrival != null;
+  }
+
+  void _onSearchPressed() {
+    if (_isFormValid()) {
+      final ridePref = RidePref(
+        departure: departure!,
+        arrival: arrival!,
+        departureDate: departureDate,
+        requestedSeats: requestedSeats,
+      );
+      print('Search: $ridePref');
+    }
   }
 
   // ----------------------------------
@@ -51,11 +89,41 @@ class _RidePrefFormState extends State<RidePrefForm> {
   // ----------------------------------
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [ 
-        
-        ]);
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // LocationPicker for departure
+            LocationPicker(
+              selectedLocation: departure,
+              onLocationSelected: _onDepartureSelected,
+            ),
+            const SizedBox(height: 12),
+            // LocationPicker for arrival
+            LocationPicker(
+              selectedLocation: arrival,
+              onLocationSelected: _onArrivalSelected,
+            ),
+            const SizedBox(height: 12),
+            DatePickerWidget(
+              selectedDate: departureDate,
+              onDateSelected: _onDateSelected,
+            ),
+            const SizedBox(height: 12),
+            SeatPicker(
+              selectedSeats: requestedSeats,
+              onSeatChange: _onSeatsChanged,
+            ),
+            const SizedBox(height: 12),
+            BlaButton(
+              text: 'Search Rides',
+              isPrimary: _isFormValid(),
+              onPressed: _isFormValid() ? _onSearchPressed : () {},
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
