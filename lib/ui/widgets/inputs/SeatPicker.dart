@@ -1,15 +1,31 @@
 import 'package:flutter/material.dart';
 
-class Seatpicker extends StatefulWidget {
-  const Seatpicker({super.key});
+class SeatPicker extends StatelessWidget {
+  final int selectedSeats;
+  final void Function(int) onSeatChange;
 
-  @override
-  State<Seatpicker> createState() => _SeatpickerState();
-}
+  const SeatPicker({
+    Key? key,
+    required this.selectedSeats,
+    required this.onSeatChange,
+  }) : super(key: key);
 
-class _SeatpickerState extends State<Seatpicker> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Row(
+      children: [
+        Text('Seats: $selectedSeats'),
+        IconButton(
+          icon: Icon(Icons.remove),
+          onPressed: selectedSeats > 1
+              ? () => onSeatChange(selectedSeats - 1)
+              : null,
+        ),
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () => onSeatChange(selectedSeats + 1),
+        ),
+      ],
+    );
   }
 }

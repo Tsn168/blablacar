@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class BlaButton extends StatelessWidget {
-  final String text; // Button label
-  final VoidCallback onPressed; // Callback when clicked
-  final bool isPrimary; // Primary or secondary color
-  final IconData? icon; // Optional icon
+  final String text;
+  final VoidCallback onPressed;
+  final bool isPrimary;
+  final IconData? icon;
 
   const BlaButton({
     super.key,
